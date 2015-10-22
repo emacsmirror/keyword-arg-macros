@@ -142,7 +142,6 @@ be bound to a cons cell containing these elements (key & value)."
 	      for value = (cdr keyvaluepair)
 	      while keyvaluepair do (eval '(progn ,@body)))))
 
-
 (provide 'keyword-arg-macros)
 
 ;; (magit-push)
