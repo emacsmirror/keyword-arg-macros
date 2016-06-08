@@ -140,7 +140,8 @@ be bound to a cons cell containing these elements (key & value)."
      (cl-loop for keyvaluepair = (extract-first-keyword-arg 'lstsym)
 	      for key = (car keyvaluepair)
 	      for value = (cdr keyvaluepair)
-	      while keyvaluepair do (eval '(progn ,@body)))))
+	      while keyvaluepair do (funcall (lambda (key value keyvaluepair)
+					       (progn ,@body)) key value keyvaluepair))))
 
 (provide 'keyword-arg-macros)
 
