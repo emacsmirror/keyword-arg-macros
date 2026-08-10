@@ -92,25 +92,31 @@ Keys can be given default values by using (:key value) instead of just :key
 If CHECK is non-nil then if there are any keys (beginning with :) in ARGS other than those in KEYS 
 an error will be thrown."
   (let ((args2 (gensym))
-	(args3 (gensym)))
+	(args3 (gensym))
+	(argskeys (gensym))
+	(requiredkeys (gensym))
+	(unusedkeys (gensym))
+	(pair (gensym))
+	(key (gensym))
+	(defval (gensym)))
     `(let ((,args2 (if (symbolp ,args) (eval ,args) ,args))
 	   (,args3 (if (symbolp ,args) ,args ',args2)))
        (if ,check
-	   (let* ((argskeys (-filter (lambda (x) (keywordp x))
-				     ,args2))
-		  (requiredkeys (mapcar (lambda (x) (if (consp x) (car x) x)) ',keys))
-		  (unusedkeys (-difference argskeys requiredkeys)))
-	     (if unusedkeys
-		 (error "Keyword argument %s not one of %s" (car unusedkeys) requiredkeys))))
-       (cl-loop for pair in ',keys
-		for key = (if (consp pair) (car pair) pair)
-		for defval = (if (consp pair) (cadr pair))
-		collect (list (if (keywordp key)
-				  (intern (substring (symbol-name key) 1))
-				key)
-			      (if (memq key ,args2)
-				  (extract-keyword-arg key ,args3)
-				defval))))))
+	   (let* ((,argskeys (-filter (lambda (x) (keywordp x))
+				      ,args2))
+		  (,requiredkeys (mapcar (lambda (x) (if (consp x) (car x) x)) ',keys))
+		  (,unusedkeys (-difference ,argskeys ,requiredkeys)))
+	     (if ,unusedkeys
+		 (error "Keyword argument %s not one of %s" (car ,unusedkeys) ,requiredkeys))))
+       (cl-loop for ,pair in ',keys
+		for ,key = (if (consp ,pair) (car ,pair) ,pair)
+		for ,defval = (if (consp ,pair) (cadr ,pair))
+		collect (list (if (keywordp ,key)
+				  (intern (substring (symbol-name ,key) 1))
+				,key)
+			      (if (memq ,key ,args2)
+				  (extract-keyword-arg ,key ,args3)
+				,defval))))))
 
 ;;;###autoload
 (defmacro extract-first-keyword-arg (lstsym &optional pred)
