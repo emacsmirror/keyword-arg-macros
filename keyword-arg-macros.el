@@ -147,12 +147,14 @@ PRED returns nil when supplied with the key value as argument."
 For each iteration of the loop, `key' will be bound to the current keyword,
 `value' will be bound to the corresponding value, and `keyvaluepair' will
 be bound to a cons cell containing these elements (key & value)."
-  `(let ((lstsym ,lst))
-     (cl-loop for keyvaluepair = (extract-first-keyword-arg 'lstsym)
-	      for key = (car keyvaluepair)
-	      for value = (cdr keyvaluepair)
-	      while keyvaluepair do (funcall (lambda (key value keyvaluepair)
-					       (progn ,@body)) key value keyvaluepair))))
+  (let ((lstsym (gensym)))
+    `(let ((,lstsym ,lst))
+       (cl-loop for keyvaluepair = (extract-first-keyword-arg ',lstsym)
+		for key = (car keyvaluepair)
+		for value = (cdr keyvaluepair)
+		while keyvaluepair do (funcall (lambda (key value keyvaluepair)
+						 (progn ,@body))
+					       key value keyvaluepair)))))
 
 (provide 'keyword-arg-macros)
 
