@@ -72,15 +72,17 @@ LSTSYM should be a symbol whose value is a list.
 If KEY is not in the list then return nil.
 If predicate function PRED is supplied then an error will be thrown if
 PRED returns nil when supplied with the key value as argument."
-  (let ((lst (gensym)))
+  (let ((lst (gensym))
+	(ind (gensym))
+	(val (gensym)))
     `(let* ((,lst (eval ,lstsym))
-	    (ind (-elem-index ,key ,lst)))
-       (unless (not ind)
-	 (let ((val (nth (1+ ind) ,lst)))
-	   (set ,lstsym (append (-take ind ,lst) (-drop (+ 2 ind) ,lst)))
-	   (if (and ,pred (not (funcall ,pred val)))
+	    (,ind (-elem-index ,key ,lst)))
+       (unless (not ,ind)
+	 (let ((,val (nth (1+ ,ind) ,lst)))
+	   (set ,lstsym (append (-take ,ind ,lst) (-drop (+ 2 ,ind) ,lst)))
+	   (if (and ,pred (not (funcall ,pred ,val)))
 	       (error "Invalid value for %S" ,key)
-	     val))))))
+	     ,val))))))
 
 ;;;###autoload
 (defmacro extract-keyword-bindings (args &optional check &rest keys)
@@ -99,7 +101,7 @@ an error will be thrown."
 		  (requiredkeys (mapcar (lambda (x) (if (consp x) (car x) x)) ',keys))
 		  (unusedkeys (-difference argskeys requiredkeys)))
 	     (if unusedkeys
-		 (error "Keyword argument %s not one of %s" (car unusedkeys) ',keys))))
+		 (error "Keyword argument %s not one of %s" (car unusedkeys) requiredkeys))))
        (cl-loop for pair in ',keys
 		for key = (if (consp pair) (car pair) pair)
 		for defval = (if (consp pair) (cadr pair))
