@@ -127,16 +127,19 @@ If there are no keys in the list then return nil, otherwise return a cons cell
 whose car is the key and whose cdr is the corresponding value.
 If predicate function PRED is supplied then an error will be thrown if
 PRED returns nil when supplied with the key value as argument."
-  (let ((lst (gensym)))
+  (let ((lst (gensym))
+	(ind (gensym))
+	(key (gensym))
+	(val (gensym)))
     `(let* ((,lst (eval ,lstsym))
-	    (ind (-find-index (lambda (x) (keywordp x)) ,lst)))
-       (unless (not ind)
-	 (let ((key (nth ind ,lst))
-	       (val (nth (1+ ind) ,lst)))
-	   (set ,lstsym (append (-take ind ,lst) (-drop (+ 2 ind) ,lst)))
-	   (if (and ,pred (not (funcall ,pred val)))
-	       (error "Invalid value for %S" key)
-	     (cons key val)))))))
+	    (,ind (-find-index (lambda (x) (keywordp x)) ,lst)))
+       (unless (not ,ind)
+	 (let ((,key (nth ,ind ,lst))
+	       (,val (nth (1+ ,ind) ,lst)))
+	   (set ,lstsym (append (-take ,ind ,lst) (-drop (+ 2 ,ind) ,lst)))
+	   (if (and ,pred (not (funcall ,pred ,val)))
+	       (error "Invalid value for %S" ,key)
+	     (cons ,key ,val)))))))
 
 ;;;###autoload
 (defmacro loop-over-keyword-args (lst &rest body)
