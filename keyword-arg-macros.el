@@ -90,7 +90,7 @@ PRED returns nil when supplied with the key value as argument."
 If ARGS is a symbol referring to a list, then KEYS and corresponding values will be removed from ARGS.
 Keys can be given default values by using (:key value) instead of just :key
 If CHECK is non-nil then if there are any keys (beginning with :) in ARGS other than those in KEYS 
-an error will be thrown."
+an error will be thrown. See also `cl-destructuring-bind'."
   (let ((args2 (gensym))
 	(args3 (gensym))
 	(argskeys (gensym))
