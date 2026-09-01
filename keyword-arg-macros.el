@@ -59,7 +59,7 @@
 ;; (require 'keyword-arg-macros)
 
 ;;; Require
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 (require 'dash)
 
 ;;; Code:
@@ -72,6 +72,7 @@ LSTSYM should be a symbol whose value is a list.
 If KEY is not in the list then return nil.
 If predicate function PRED is supplied then an error will be thrown if
 PRED returns nil when supplied with the key value as argument."
+  (declare (debug t))
   (let ((lst (gensym))
 	(ind (gensym))
 	(val (gensym)))
@@ -91,6 +92,7 @@ If ARGS is a symbol referring to a list, then KEYS and corresponding values will
 Keys can be given default values by using (:key value) instead of just :key
 If CHECK is non-nil then if there are any keys (beginning with :) in ARGS other than those in KEYS 
 an error will be thrown. See also `cl-destructuring-bind'."
+  (declare (debug (form &optional form &rest sexp)))
   (let ((args2 (gensym))
 	(args3 (gensym))
 	(argskeys (gensym))
@@ -127,6 +129,7 @@ If there are no keys in the list then return nil, otherwise return a cons cell
 whose car is the key and whose cdr is the corresponding value.
 If predicate function PRED is supplied then an error will be thrown if
 PRED returns nil when supplied with the key value as argument."
+  (declare (debug t))
   (let ((lst (gensym))
 	(ind (gensym))
 	(key (gensym))
@@ -141,12 +144,19 @@ PRED returns nil when supplied with the key value as argument."
 	       (error "Invalid value for %S" ,key)
 	     (cons ,key ,val)))))))
 
+;; TODO: 
+;; (eval ,lstsym) / (set ,lstsym ...) only work for dynamically bound variables.
+;; This file has no "lexical-binding: t" cookie, so it works today, but
+;; under lexical binding `loop-over-keyword-args' would break: its gensym is
+;; let-bound lexically, so (eval ',lstsym) signals void-variable.
 ;;;###autoload
 (defmacro loop-over-keyword-args (lst &rest body)
   "Loop over the keyword args in list LST, evaluating BODY forms each time.
 For each iteration of the loop, `key' will be bound to the current keyword,
 `value' will be bound to the corresponding value, and `keyvaluepair' will
 be bound to a cons cell containing these elements (key & value)."
+  (declare (debug (form body))
+	   (indent 1))
   (let ((lstsym (gensym)))
     `(let ((,lstsym ,lst))
        (cl-loop for keyvaluepair = (extract-first-keyword-arg ',lstsym)
